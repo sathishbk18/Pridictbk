@@ -1,4 +1,6 @@
+from markdown.__main__ import run
 import pandas as pd
+import gcsfs
 import numpy
 import dash
 import dash_core_components as dcc
@@ -11,9 +13,9 @@ from keras.layers import LSTM, Dense, Dropout
 from keras.layers.recurrent import GRU
 from keras.models import Sequential, load_model
 import math
-
+from flask import Flask
+import os
 # pandas is imported to read the csv file and perform preprocessing on the dataset.
-import pandas
 # matlpotlib is used to visualize the plot
 # MinMaxScalar is used to normalize the value before training
 from sklearn.preprocessing import MinMaxScaler
@@ -21,15 +23,18 @@ from sklearn.preprocessing import MinMaxScaler
 # keras has 2 models one is functional and another is sequential
 from keras.models import Sequential
 from keras.optimizers import SGD
+server = Flask(__name__)
+server.secret_key = os.environ.get('secret_key', 'secret')
+app = dash.Dash(name = __name__, server = server)
+app.config.supress_callback_exceptions = True
 
 
 df = pd.read_csv('gs://stockcsv/1minstock.csv')
-available_indicators = df['Ticker'].unique()
-dash_app = dash.Dash()
-app = dash_app.server
-app.config.supress_callback_exceptions = True
 
-dash_app.layout = html.Div([
+available_indicators = df['Ticker'].unique()
+
+
+app.layout = html.Div([
     html.H2('stock prediction'),
     dcc.Dropdown(
         id='x1',
@@ -38,7 +43,7 @@ dash_app.layout = html.Div([
 
     ),
     dcc.Graph(
-        id="g1",
+        id='g1',
         figure={'layout': {
             'height': 600,
             'width': 1500,
@@ -46,7 +51,7 @@ dash_app.layout = html.Div([
     ),
 ])
 
-@dash_app.callback(Output(component_id='g1',component_property='figure'),
+@app.callback(Output(component_id='g1',component_property='figure'),
               [Input(component_id='x1',component_property='value')],
               )
 def update_fig(input_value):
@@ -137,6 +142,4 @@ def update_fig(input_value):
         fig = go.Figure(data=[trace1, trace2])
 
         return fig
-
-
 
