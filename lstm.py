@@ -23,8 +23,7 @@ from keras.models import Sequential
 from keras.optimizers import SGD
 
 
-
-df = pd.read_csv('/home/client-006/Downloads/oneminstock.csv', sep=",")
+df = pd.read_csv('gs://stockcsv/1minstock.csv')
 available_indicators = df['Ticker'].unique()
 dash_app = dash.Dash()
 app = dash_app.server
